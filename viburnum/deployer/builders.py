@@ -66,21 +66,36 @@ class AppConstruct(Stack):
 
     def _prepare_shared_layer(self):
         logging.info("Preparing shared layer")
-        shared_layer_folder = Path("./.layers/shared-layer")
+        shared_layer_folder = Path("./.layers/shared")
         if os.path.exists(shared_layer_folder):
             shutil.rmtree(shared_layer_folder)
         os.mkdir(shared_layer_folder)
         shutil.copytree("shared", str(shared_layer_folder.joinpath("python/shared")))
 
     def _prepare_libraries_layer(self):
-        pass
+        logging.info("Preparing libraries layer")
+        lib_layer_folder = Path("./.layers/lib")
+        if os.path.exists(lib_layer_folder):
+            shutil.rmtree(lib_layer_folder)
+        os.mkdir(lib_layer_folder)
+        shutil.copy("requirements.txt", str(lib_layer_folder))
 
     def _build_shared_layer(self):
         self._shared_layer = aws_lambda.LayerVersion(
             self,
             "SharedLayer",
             code=aws_lambda.Code.from_asset(
-                str(Path("./.shared-layer")),
+                str(Path("./.layers/shared")),
+            ),
+            compatible_runtimes=[aws_lambda.Runtime.PYTHON_3_9],
+        )
+
+    def _build_lib_layer(self):
+        self._lib_layer = aws_lambda.LayerVersion(
+            self,
+            "SharedLayer",
+            code=aws_lambda.Code.from_asset(
+                str(Path("./.layers/lib")),
             ),
             compatible_runtimes=[aws_lambda.Runtime.PYTHON_3_9],
         )
