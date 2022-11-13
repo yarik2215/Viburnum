@@ -55,7 +55,7 @@ class Handler:
         )
         if isinstance(response, LambdaOutput):
             return response.as_response()
-        response
+        return response
 
     def _get_resource_clients(self) -> dict:
         return {r.resource_name: r.get_resource_client() for r in self.resources}
