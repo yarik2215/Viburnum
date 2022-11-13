@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "viburnum"
+version = "0.1.0"
+description = "It's abstraction on top of AWS CDK, that helps in building serverless web applications."
+authors = ["Yaroslav Martynenko <stikblacklabel@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+[tool.poetry.group.dev.dependencies]
+boto3 = "^1.26.8"
+pylint = "^2.15.5"
+black = "^22.10.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
