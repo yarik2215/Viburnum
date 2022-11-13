@@ -1,6 +1,5 @@
-from typing import Callable
 import weakref
-
+from typing import Callable
 
 # __________________ Resource Connector ___________________
 

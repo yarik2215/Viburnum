@@ -1,4 +1,4 @@
-from typing import Union, Any
+from typing import Any, Union
 
 HeadersType = dict[str, str]
 MultiQueryParamsType = dict[str, list[str]]

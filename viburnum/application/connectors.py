@@ -3,8 +3,7 @@ import os
 
 import boto3
 
-from .base import ResourceConnector, Handler
-
+from .base import Handler, ResourceConnector
 
 # ______________________ SQS _______________________________
 
