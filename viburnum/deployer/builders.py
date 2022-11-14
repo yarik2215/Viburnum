@@ -36,7 +36,7 @@ def get_builder_class(primitive):
     return getattr(sys.modules[__name__], f"{primitive.__class__.__name__}Builder")
 
 
-class AppConstruct(Stack):
+class AppStack(Stack):
     def __init__(self, scope: Construct, app: Application, **kwargs) -> None:
         super().__init__(scope, app.name, **kwargs)
 
