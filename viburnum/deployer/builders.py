@@ -43,10 +43,7 @@ class AppStack(Stack):
         self._app = app
         self._built_resources = {}
 
-        self._prepare_shared_layer()
-        self._prepare_libraries_layer()
-        self._build_shared_layer()
-        self._build_lib_layer()
+        self._build_layers()
 
         self._build_resources()
         self._build_handlers()
@@ -65,6 +62,17 @@ class AppStack(Stack):
                 sys.modules[__name__], f"{handler.__class__.__name__}Builder"
             )
             handler_class(self, handler).build()
+
+    def _build_layers(self):
+        lib_folder = Path("./.layers")
+        if not lib_folder.exists():
+            os.mkdir(str(lib_folder))
+
+        if Path("./shared").exists():
+            self._prepare_shared_layer()
+            self._build_shared_layer()
+        self._prepare_libraries_layer()
+        self._build_lib_layer()
 
     def _prepare_shared_layer(self):
         logging.info("Preparing shared layer")
