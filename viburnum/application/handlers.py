@@ -84,7 +84,7 @@ class ApiHandler(Handler):
         return "_api"
 
 
-def route(path: str, methods: Iterable[str] = ("ANY")):
+def route(path: str, methods: Iterable[str] = ("ANY",)):
     "Wrapper for creating :class:`ApiHandler` resource."
 
     def wraper(func):
