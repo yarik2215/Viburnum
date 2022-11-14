@@ -10,6 +10,7 @@
 - [ ] DynamoDb resource
 - [ ] Add ability to create custom layers
 - [ ] Add ability to create custom resources and builders for them
+- [ ] Add auto creating of dashboard with metrics
 
 ## Tech depth
 
@@ -19,3 +20,4 @@
 - [ ] Copy layers to `.layers` folder
 - [ ] Write readme and manual on how to use `simpler`
 - [ ] Think about how to not load deployer part of library into Lambda
+- [ ] Add layer for requrements.txt
