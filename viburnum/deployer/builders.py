@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Generic, TypeVar
 
+import pip
 from aws_cdk import (
     Duration,
     Stack,
@@ -45,6 +46,7 @@ class AppConstruct(Stack):
         self._prepare_shared_layer()
         self._prepare_libraries_layer()
         self._build_shared_layer()
+        self._build_lib_layer()
 
         self._build_resources()
         self._build_handlers()
@@ -80,6 +82,17 @@ class AppConstruct(Stack):
         os.mkdir(lib_layer_folder)
         shutil.copy("requirements.txt", str(lib_layer_folder))
 
+        # TODO: use docker container for building lib layer
+        pip.main(
+            [
+                "install",
+                "-r",
+                "requirements.txt",
+                "--target",
+                str(lib_layer_folder.joinpath("python")),
+            ]
+        )
+
     def _build_shared_layer(self):
         self._shared_layer = aws_lambda.LayerVersion(
             self,
@@ -93,7 +106,7 @@ class AppConstruct(Stack):
     def _build_lib_layer(self):
         self._lib_layer = aws_lambda.LayerVersion(
             self,
-            "SharedLayer",
+            "LibLayer",
             code=aws_lambda.Code.from_asset(
                 str(Path("./.layers/lib")),
             ),
@@ -136,7 +149,7 @@ class HandlerBuilder(Generic[HandlerType]):
                 "APP_NAME": self.context._app.name,
                 # "AWS_REGION": self.context.region, This variable is reserved
             },
-            layers=[self.context._shared_layer],
+            layers=[self.context._shared_layer, self.context._lib_layer],
         )
         return lambda_fn
 
