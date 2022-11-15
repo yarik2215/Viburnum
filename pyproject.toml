@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "viburnum"
-version = "0.1.3"
+version = "0.1.4"
 description = "It's abstraction on top of AWS CDK, that helps in building serverless web applications."
 authors = ["Yaroslav Martynenko <stikblacklabel@gmail.com>"]
 license = "MIT"
@@ -12,6 +12,7 @@ python = "^3.8"
 constructs = {version = ">=10.0.0,<11.0.0", optional = true}
 aws-cdk-lib = {version = "2.50.0", optional = true}
 boto3 = {version = "^1.26.8", optional = true}
+typer = {extras = ["all"], version = "^0.7.0", optional=true}
 
 [tool.poetry.group.dev.dependencies]
 pylint = "^2.15.5"
@@ -23,4 +24,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.extras]
-deployer = ["constructs", "aws-cdk-lib", "boto3"]
+deployer = ["constructs", "aws-cdk-lib", "boto3", "typer"]
+
+[tool.poetry.scripts]
+viburnum = 'viburnum.cli:app'

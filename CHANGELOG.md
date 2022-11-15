@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog],
 and this project adheres to [Semantic Versioning].
 
+## [0.0.4] - 2022-11-15
+
+### Added
+
+- CLI tool for initializing project and creating handlers
+- Exception if resource doesn't exists
+
 ## [0.0.3] - 2022-11-14
 
 ### Added

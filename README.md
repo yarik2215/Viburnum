@@ -97,3 +97,15 @@ All logic that shared across all lambdas, must be placed inside `shared` folder,
 ├── requirements-dev.txt
 └── requirements.txt
 ```
+
+### CLI tool
+
+Viburnum deployer include CLI tool that helps initializing project and creating a new handlers.
+After initializing project folder with `cdk init app --language python` you can call `virburnum init`, that command will change some files so Virburnum can work correctly.
+There is command for creating new handlers `virburnum add [HANDLER_TYPE]` that will create a handler.
+
+Supported `HANDLER_TYPE`:
+
+- `api`
+- `worker`
+- `job`
