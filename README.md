@@ -109,3 +109,7 @@ Supported `HANDLER_TYPE`:
 - `api`
 - `worker`
 - `job`
+
+## Example app
+
+Simple [example app](https://github.com/yarik2215/Viburnum-example)

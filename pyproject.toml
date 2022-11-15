@@ -5,6 +5,7 @@ description = "It's abstraction on top of AWS CDK, that helps in building server
 authors = ["Yaroslav Martynenko <stikblacklabel@gmail.com>"]
 license = "MIT"
 readme = "README.md"
+repository = "https://github.com/yarik2215/Viburnum"
 
 [tool.poetry.dependencies]
 python = "^3.8"
