@@ -6,6 +6,7 @@ authors = ["Yaroslav Martynenko <stikblacklabel@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/yarik2215/Viburnum"
+keywords = ["aws", "serverless"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
