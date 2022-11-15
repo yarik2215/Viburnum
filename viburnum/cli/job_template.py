@@ -1,5 +1,4 @@
-job_template = """
-from viburnum.application import JobEvent, job
+job_template = """from viburnum.application import JobEvent, job
 
 
 @job("{schedule}")

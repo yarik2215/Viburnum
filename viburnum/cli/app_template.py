@@ -1,5 +1,4 @@
-app_template = """
-#!/usr/bin/env python3
+app_template = """#!/usr/bin/env python3
 import aws_cdk as cdk
 from viburnum.deployer import AppStack
 from viburnum.application import Application
@@ -7,6 +6,7 @@ from viburnum.application import Application
 # [Imports]
 
 app = Application("{app_name}")
+
 # [Handlers]
 
 # [Resources]

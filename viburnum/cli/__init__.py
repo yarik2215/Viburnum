@@ -3,6 +3,8 @@ from pathlib import Path
 
 import typer
 
+from viburnum import __version__
+
 from .api_template import api_template
 from .app_template import app_template
 from .job_template import job_template
@@ -18,13 +20,19 @@ def _create_moudle(path: Path):
 
 
 class ProjectInitializer:
-    def __init__(self) -> None:
+    def __init__(self, without_shared: bool = False) -> None:
         typer.confirm("It will overwrite app.py file, continue?", abort=True)
         self.app_name = self._get_app_name()
         typer.secho("Initializing project...", fg=typer.colors.BRIGHT_CYAN)
+        self._create_requirements()
         self._update_app()
-        self._create_shared_folder()
+        if not without_shared:
+            self._create_shared_folder()
         typer.secho("Done!", fg=typer.colors.BRIGHT_CYAN)
+
+    def _create_requirements(self) -> None:
+        with open("requirements.txt", "w", encoding="utf-8") as f:
+            f.write(f"viburnum>={__version__}")
 
     def _get_app_name(self) -> str:
         return typer.prompt("Stack name", type=str)
@@ -42,8 +50,8 @@ app = typer.Typer(name="viburnum-cli")
 
 
 @app.command(help="Initialize project")
-def init():
-    ProjectInitializer()
+def init(without_shared: bool = typer.Option(False, help="Don't create shared folder")):
+    ProjectInitializer(without_shared)
 
 
 class HandlerCreator:

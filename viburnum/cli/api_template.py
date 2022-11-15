@@ -1,5 +1,4 @@
-api_template = """
-from viburnum.application import route, Request, Response
+api_template = """from viburnum.application import route, Request, Response
 
 
 @route("{path}", methods={methods})
