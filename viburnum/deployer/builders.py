@@ -32,6 +32,16 @@ from viburnum.application.connectors import SqsConnector
 from viburnum.application.handlers import ApiHandler, JobHandler, SqsHandler
 
 
+class BuilderException(Exception):
+    pass
+
+
+class ResourceNotDefined(BuilderException):
+    def __init__(self, resource_name: str) -> None:
+        self.resource_name = resource_name
+        super().__init__(f"Resource '{resource_name}' not defined!")
+
+
 def get_builder_class(primitive):
     return getattr(sys.modules[__name__], f"{primitive.__class__.__name__}Builder")
 
@@ -129,6 +139,8 @@ class AppStack(Stack):
         return queue
 
     def get_built_resource(self, name: str):
+        if name not in self._built_resources:
+            raise ResourceNotDefined(name)
         return self._built_resources[name]
 
 
@@ -139,7 +151,7 @@ HandlerType = TypeVar("HandlerType", bound=Handler)
 
 
 class HandlerBuilder(Generic[HandlerType]):
-    def __init__(self, context: "AppConstruct", handler: HandlerType) -> None:
+    def __init__(self, context: "AppStack", handler: HandlerType) -> None:
         self.context = context
         self.handler = handler
 
@@ -236,7 +248,7 @@ ResourceType = TypeVar("ResourceType", bound=Resource)
 
 
 class ResourceBuilder(ABC, Generic[ResourceType]):
-    def __init__(self, context: "AppConstruct", resource: ResourceType) -> None:
+    def __init__(self, context: "AppStack", resource: ResourceType) -> None:
         self.context = context
         self.resource = resource
 
@@ -264,7 +276,7 @@ ConnectorType = TypeVar("ConnectorType", bound=ResourceConnector)
 class ResourceConnectorBuilder(ABC, Generic[ConnectorType]):
     def __init__(
         self,
-        context: "AppConstruct",
+        context: "AppStack",
         connector: ConnectorType,
         lambda_: aws_lambda.Function,
     ) -> None:
