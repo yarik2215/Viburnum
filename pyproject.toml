@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "viburnum"
-version = "0.1.4"
+version = "0.1.5"
 description = "It's abstraction on top of AWS CDK, that helps in building serverless web applications."
 authors = ["Yaroslav Martynenko <stikblacklabel@gmail.com>"]
 license = "MIT"

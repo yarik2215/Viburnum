@@ -5,14 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog],
 and this project adheres to [Semantic Versioning].
 
-## [0.0.4] - 2022-11-15
+## [0.1.5] - 2022-11-16
+
+### Added
+
+- S3 handler
+- S3 resource
+- CLI add `s3-worker` resource
+
+### Fixed
+
+- Fixed synthesize stack without `shared` layer
+
+## [0.1.4] - 2022-11-15
 
 ### Added
 
 - CLI tool for initializing project and creating handlers
 - Exception if resource doesn't exists
 
-## [0.0.3] - 2022-11-14
+## [0.1.3] - 2022-11-14
 
 ### Added
 
@@ -24,13 +36,13 @@ and this project adheres to [Semantic Versioning].
 - Fixed issue with building `shared` layer
 - Fixed issue with default methods for `route`
 
-## [0.0.2] - 2022-11-13
+## [0.1.2] - 2022-11-13
 
 ### Added
 
 - Libraries layer
 
-## [0.0.1] - 2022-11-13
+## [0.1.1] - 2022-11-13
 
 - initial release
 

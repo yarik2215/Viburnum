@@ -16,20 +16,23 @@ from aws_cdk import (
     aws_events_targets,
     aws_lambda,
     aws_lambda_event_sources,
+    aws_s3,
     aws_sqs,
 )
 from constructs import Construct
 
 from viburnum.application import (
+    S3,
     Application,
     Handler,
     Resource,
     ResourceConnector,
+    S3Permission,
     Sqs,
     SqsPermission,
 )
-from viburnum.application.connectors import SqsConnector
-from viburnum.application.handlers import ApiHandler, JobHandler, SqsHandler
+from viburnum.application.connectors import S3Connector, SqsConnector
+from viburnum.application.handlers import ApiHandler, JobHandler, S3Handler, SqsHandler
 
 
 class BuilderException(Exception):
@@ -52,6 +55,7 @@ class AppStack(Stack):
 
         self._app = app
         self._built_resources = {}
+        self.required_layers = []
 
         self._build_layers()
 
@@ -120,6 +124,7 @@ class AppStack(Stack):
             ),
             compatible_runtimes=[aws_lambda.Runtime.PYTHON_3_9],
         )
+        self.required_layers.append(self._shared_layer)
 
     def _build_lib_layer(self):
         self._lib_layer = aws_lambda.LayerVersion(
@@ -130,6 +135,7 @@ class AppStack(Stack):
             ),
             compatible_runtimes=[aws_lambda.Runtime.PYTHON_3_9],
         )
+        self.required_layers.append(self._lib_layer)
 
     def _build_sqs(self, sqs: Sqs):
         queue = aws_sqs.Queue(
@@ -169,7 +175,7 @@ class HandlerBuilder(Generic[HandlerType]):
                 "APP_NAME": self.context._app.name,
                 # "AWS_REGION": self.context.region, This variable is reserved
             },
-            layers=[self.context._shared_layer, self.context._lib_layer],
+            layers=self.context.required_layers,
         )
         return lambda_fn
 
@@ -241,6 +247,24 @@ class SqsHandlerBuilder(HandlerBuilder[SqsHandler]):
         lambda_.add_event_source(_sqs_event_source)
 
 
+class S3HandlerBuilder(HandlerBuilder[S3Handler]):
+    def build(self):
+        lambda_ = super().build()
+        self._handler_connect_bucket(lambda_)
+
+    def _handler_connect_bucket(self, lambda_: aws_lambda.Function):
+        bucket = aws_s3.Bucket = self.context.get_built_resource(
+            self.handler.bucket_name
+        )
+        # FIXME: add events
+        events_ = [getattr(aws_s3.EventType, e.name) for e in self.handler.events]
+        filters_ = []
+        _s3_event_source = aws_lambda_event_sources.S3EventSource(
+            bucket, events=events_, filters=filters_
+        )
+        lambda_.add_event_source(_s3_event_source)
+
+
 # ______________ Resource Builders __________________ #
 
 
@@ -268,7 +292,13 @@ class SqsBuilder(ResourceBuilder[Sqs]):
         return queue
 
 
-# _____________________ Resource Conector Builder ________________________
+class S3Builder(ResourceBuilder[S3]):
+    def build(self):
+        bucket = aws_s3.Bucket(self.context, self.resource.name)
+        return bucket
+
+
+# _____________________ Resource Connector Builder ________________________
 
 ConnectorType = TypeVar("ConnectorType", bound=ResourceConnector)
 
@@ -304,4 +334,23 @@ class SqsConnectorBuilder(ResourceConnectorBuilder[SqsConnector]):
             resource.grant_send_messages(self.lambda_)
         self.lambda_.add_environment(
             f"{self.connector.resource_name.upper()}_URL", resource.queue_url
+        )
+
+
+class S3ConnectorBuilder(ResourceConnectorBuilder[S3Connector]):
+    def build(self):
+        bucket: aws_s3.Bucket = self.context.get_built_resource(
+            self.connector.resource_name
+        )
+        if self.connector.permission is S3Permission.read:
+            bucket.grant_read(self.lambda_)
+        elif self.connector.permission is S3Permission.write:
+            # Rework permissions
+            bucket.grant_write(self.lambda_)
+            bucket.grant_delete(self.lambda_)
+        elif self.connector.permission is S3Permission.full_access:
+            bucket.grant_read_write(self.lambda_)
+            bucket.grant_delete(self.lambda_)
+        self.lambda_.add_environment(
+            f"{self.connector.resource_name.upper()}_NAME", bucket.bucket_name
         )

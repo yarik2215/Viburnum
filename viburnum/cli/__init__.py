@@ -8,6 +8,7 @@ from viburnum import __version__
 from .api_template import api_template
 from .app_template import app_template
 from .job_template import job_template
+from .s3_worker_template import s3_worker_template
 from .sqs_worker_template import sqs_worker_template
 
 
@@ -191,7 +192,7 @@ class SqsWorkerHandlerCreator(HandlerCreator):
     def __init__(self) -> None:
         super().__init__()
         typer.secho(
-            f"Created job handler '{self.handler_name}'", fg=typer.colors.BRIGHT_GREEN
+            f"Created sqs handler '{self.handler_name}'", fg=typer.colors.BRIGHT_GREEN
         )
 
     def _read_params(self):
@@ -201,6 +202,26 @@ class SqsWorkerHandlerCreator(HandlerCreator):
     def _get_params(self) -> dict:
         params = super()._get_params()
         params.update({"sqs_name": self.sqs_name})
+        return params
+
+
+class S3WorkerHandlerCreator(HandlerCreator):
+    handler_type: str = "workers"
+    handler_file_template: str = s3_worker_template
+
+    def __init__(self) -> None:
+        super().__init__()
+        typer.secho(
+            f"Created s3 handler '{self.handler_name}'", fg=typer.colors.BRIGHT_GREEN
+        )
+
+    def _read_params(self):
+        super()._read_params()
+        self.bucket_name = typer.prompt("S3 bucket name", type=str)
+
+    def _get_params(self) -> dict:
+        params = super()._get_params()
+        params.update({"bucket_name": self.bucket_name})
         return params
 
 
@@ -215,8 +236,13 @@ def job():
 
 
 @create_handler_app.command()
-def worker():
+def sqs_worker():
     SqsWorkerHandlerCreator()
+
+
+@create_handler_app.command()
+def s3_worker():
+    S3WorkerHandlerCreator()
 
 
 app.add_typer(create_handler_app, name="add")

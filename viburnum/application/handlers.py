@@ -1,5 +1,8 @@
+import enum
 import json
 from collections import UserList
+from dataclasses import dataclass
+from datetime import datetime
 from typing import Any, Callable, Iterable, Optional
 
 from viburnum.application.base import Handler, LambdaInput, LambdaOutput
@@ -128,7 +131,7 @@ def job(schedule: str):
     return wrapper
 
 
-# __________________ Worker ____________________________
+# __________________ Sqs Worker ____________________________
 # Lambda with SQS
 # https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html
 
@@ -209,6 +212,122 @@ def sqs_handler(queue_name: str):
         return SqsHandler(
             func,
             queue_name,
+        )
+
+    return wrapper
+
+
+# _________________ S3 Worker ____________________________
+# Lambda with S3 stream
+# https://docs.aws.amazon.com/lambda/latest/dg/with-s3.html
+
+
+class S3EventType(enum.Enum):
+    """Notification event types.
+
+    :link: https://docs.aws.amazon.com/AmazonS3/latest/userguide/notification-how-to-event-types-and-destinations.html#supported-notification-event-types
+    """
+
+    OBJECT_CREATED = "OBJECT_CREATED"
+    OBJECT_CREATED_PUT = "OBJECT_CREATED_PUT"
+    OBJECT_CREATED_POST = "OBJECT_CREATED_POST"
+    OBJECT_CREATED_COPY = "OBJECT_CREATED_COPY"
+    OBJECT_CREATED_COMPLETE_MULTIPART_UPLOAD = (
+        "OBJECT_CREATED_COMPLETE_MULTIPART_UPLOAD"
+    )
+    OBJECT_REMOVED = "OBJECT_REMOVED"
+    OBJECT_REMOVED_DELETE = "OBJECT_REMOVED_DELETE"
+    OBJECT_REMOVED_DELETE_MARKER_CREATED = "OBJECT_REMOVED_DELETE_MARKER_CREATED"
+    OBJECT_RESTORE_POST = "OBJECT_RESTORE_POST"
+    OBJECT_RESTORE_COMPLETED = "OBJECT_RESTORE_COMPLETED"
+    OBJECT_RESTORE_DELETE = "OBJECT_RESTORE_DELETE"
+    REDUCED_REDUNDANCY_LOST_OBJECT = "REDUCED_REDUNDANCY_LOST_OBJECT"
+    REPLICATION_OPERATION_FAILED_REPLICATION = (
+        "REPLICATION_OPERATION_FAILED_REPLICATION"
+    )
+    REPLICATION_OPERATION_MISSED_THRESHOLD = "REPLICATION_OPERATION_MISSED_THRESHOLD"
+    REPLICATION_OPERATION_REPLICATED_AFTER_THRESHOLD = (
+        "REPLICATION_OPERATION_REPLICATED_AFTER_THRESHOLD"
+    )
+    REPLICATION_OPERATION_NOT_TRACKED = "REPLICATION_OPERATION_NOT_TRACKED"
+    LIFECYCLE_EXPIRATION = "LIFECYCLE_EXPIRATION"
+    LIFECYCLE_EXPIRATION_DELETE = "LIFECYCLE_EXPIRATION_DELETE"
+    LIFECYCLE_EXPIRATION_DELETE_MARKER_CREATED = (
+        "LIFECYCLE_EXPIRATION_DELETE_MARKER_CREATED"
+    )
+    LIFECYCLE_TRANSITION = "LIFECYCLE_TRANSITION"
+    INTELLIGENT_TIERING = "INTELLIGENT_TIERING"
+    OBJECT_TAGGING = "OBJECT_TAGGING"
+    OBJECT_TAGGING_PUT = "OBJECT_TAGGING_PUT"
+    OBJECT_TAGGING_DELETE = "OBJECT_TAGGING_DELETE"
+    OBJECT_ACL_PUT = "OBJECT_ACL_PUT"
+
+
+@dataclass
+class S3Object:
+    key: str
+    size: int
+    eTag: str
+    sequencer: str
+
+
+@dataclass
+class S3Bucket:
+    name: str
+    arn: str
+
+
+@dataclass
+class S3Event:
+    event_name: str
+    event_time: datetime
+    bucket: S3Bucket
+    object: S3Object
+
+
+class S3EventSequence(LambdaInput, UserList[S3Event]):
+    def __init__(self, event: dict, context: dict) -> None:
+        super().__init__(event, context)
+        self.data = [self._get_s3_event(e) for e in event["Records"]]
+
+    def _get_s3_event(self, raw_event: dict) -> S3Event:
+        bucket = S3Bucket(
+            name=raw_event["s3"]["bucket"]["name"], arn=raw_event["s3"]["bucket"]["arn"]
+        )
+        object_ = S3Object(**raw_event["s3"]["object"])
+        return S3Event(
+            event_name=raw_event.get("eventName"),
+            event_time=datetime.strptime(
+                raw_event.get("eventTime"), "%Y-%m-%dT%H:%M:%S.%fZ"
+            ),
+            bucket=bucket,
+            object=object_,
+        )
+
+
+class S3Handler(Handler):
+    event_class = SqsEventsSequence
+
+    def __init__(
+        self, func: Callable, bucket_name: str, events: list[S3EventType]
+    ) -> None:
+        super().__init__(func)
+        self.bucket_name = bucket_name
+        self.events = events
+
+
+def s3_handler(
+    bucket_name: str, events: Iterable[S3EventType] = (S3EventType.OBJECT_CREATED,)
+):
+    """
+    Wrapper for creating :class:`JobHandler` resource.
+    """
+
+    def wrapper(func):
+        return S3Handler(
+            func,
+            bucket_name,
+            events,
         )
 
     return wrapper
