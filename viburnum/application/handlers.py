@@ -306,7 +306,7 @@ class S3EventSequence(LambdaInput, UserList[S3Event]):
 
 
 class S3Handler(Handler):
-    event_class = SqsEventsSequence
+    event_class = S3EventSequence
 
     def __init__(
         self, func: Callable, bucket_name: str, events: list[S3EventType]
